@@ -1,25 +1,33 @@
-# Dev::ContainerizedService
+[![Actions Status](https://github.com/lizmat/Dev-ContainerizedService/actions/workflows/test.yml/badge.svg)](https://github.com/lizmat/Dev-ContainerizedService/actions)
 
-This module aims to ease the process of setting up services (such as Postgres)
-for the purpose of having a local development environment for Raku projects.
-For example, one might have a Raku web application that uses a database. In
-order to try out the application locally, a database instance needs to be set
-up. Ideally this should be effortless and also isolated.
+NAME
+====
 
-As the name suggests, this module achieves its aims using containers. It
-depends on nothing more than Raku and having a functioning `docker`
-installation.
+Dev::ContainerizedService - Uses containers to provide services (such as databases) to ease getting a local development environment set up
 
-## Usage
+SYNOPSIS
+========
 
-### Getting Started
+```raku
+use Dev::ContainerizedService;
+```
 
-Let's assume we have a web application that uses a Postgres database and expects
-that the `DB_CONN_INFO` environment variable will be populated with a connection
-string.
+DESCRIPTION
+===========
 
-To make a development environment configuration using this module, we create a
-script `devenv.raku`:
+This module aims to ease the process of setting up services (such as Postgres) for the purpose of having a local development environment for Raku projects. For example, one might have a Raku web application that uses a database. In order to try out the application locally, a database instance needs to be set up. Ideally this should be effortless and also isolated.
+
+As the name suggests, this module achieves its aims using containers. It depends on nothing more than Raku and having a functioning `docker` installation.
+
+Usage
+=====
+
+Getting Started
+---------------
+
+Let's assume we have a web application that uses a Postgres database and expects that the `DB_CONN_INFO` environment variable will be populated with a connection string.
+
+To make a development environment configuration using this module, we create a script `devenv.raku`:
 
 ```raku
 #!/usr/bin/env raku
@@ -30,43 +38,33 @@ service 'postgres', :tag<13.0>, -> (:$conninfo, *%) {
 }
 ```
 
-The `service` function specifies the service ID, a Docker image tag, and a block that
-should be called when the service is up and running. The `env` function, located in a
-service, specifies an environment variable to be set.
+The `service` function specifies the service ID, a Docker image tag, and a block that should be called when the service is up and running. The `env` function, located in a service, specifies an environment variable to be set.
 
 We can then (assuming `chmod +x devenv.raku`) use the script as follows:
 
-```
-./devenv.raku run raku -Ilib service.raku
-```
+    $ ./devenv.raku run raku -Ilib service.raku
 
 This will:
 
-1. Pull the Postgres docker container if required
-2. Run the container, setting up a database user/password and binding it to a free
-   port
-3. Run `raku -Ilib service.raku` with the `DB_CONN_INFO` environment variable set
+  * 1. Pull the Postgres docker container if required
 
-If using the `cro` development tool, one could do:
+  * 2. Run the container, setting up a database user/password and binding it to a free port
 
-```
-./devenv.raku run cro run
-```
+  * 3. Run `raku -Ilib service.raku` with the `DB_CONN_INFO` environment variable set
 
-### Additional Actions
+When using the `cro` development tool, one could do:
 
-The service block is run after the container is started (service implementations
-include readiness checks). As well as - or instead of - specifying environment
-variables to pass to the process, one can write any Raku code there. For
-example, one could run database migrations (in the case where it's desired to
-have them explicitly applied to production, rather than having them applied at
-application startup time).
+    $ ./devenv.raku run cro run
 
-### Retaining data
+Additional Actions
+------------------
 
-By default, any created databases are not persisted once the `run` command is
-completed. To change this, alter the configuration file to specify a project name
-(the name of your application) and call `store`:
+The service block is run after the container is started (service implementations include readiness checks). As well as - or instead of - specifying environment variables to pass to the process, one can write any Raku code there. For example, one could run database migrations (in the case where it's desired to have them explicitly applied to production, rather than having them applied at application startup time).
+
+Retaining data
+--------------
+
+By default, any created databases are not persisted once the `run` command is completed. To change this, alter the configuration file to specify a project name (the name of your application) and call `store`:
 
 ```raku
 #!/usr/bin/env raku
@@ -80,58 +78,44 @@ service 'postgres', :tag<13.0>, -> (:$conninfo, *%) {
 }
 ```
 
-Now when using `./devenv.raku run ...`, for services that support it, Docker
-volume(s) will be created and the generated password(s) for services will be
-saved (in your home directory). These will be reused on subsequent runs.
+Now when using `./devenv.raku run ...`, for services that support it, Docker volume(s) will be created and the generated password(s) for services will be saved (in your home directory). These will be reused on subsequent runs.
 
 To clean up this storage, use:
 
-```
-./devenv.raku delete
-```
+    $ ./devenv.raku delete
 
 Which will remove any created volumes along with saved settings.
 
-### Showing produced configuration
+Showing produced configuration
+------------------------------
 
-When using storage, it is also possible to see the most recently passed service
-settings for each service by using:
+When using storage, it is also possible to see the most recently passed service settings for each service by using:
 
-```
-./devenv.raku show
-```
+    $ ./devenv.raku show
 
 The output looks like this:
 
-```
-postgres
-  conninfo: host=localhost port=29249 user=test password=xxlkC2MrOv4yJ3vP1V-pVI7 dbname=test
-  dbname: test
-  host: localhost
-  password: xxlkC2MrOv4yJ3vP1V-pVI7
-  port: 29249
-  user: test
-```
+    postgres
+      conninfo: host=localhost port=29249 user=test password=xxlkC2MrOv4yJ3vP1V-pVI7 dbname=test
+      dbname: test
+      host: localhost
+      password: xxlkC2MrOv4yJ3vP1V-pVI7
+      port: 29249
+      user: test
 
-When used while `run` is active, this is handy for obtaining connection string
-information in order to connect to the database using tools of your choice.
+When used while `run` is active, this is handy for obtainingi the connection string information in order to connect to the database using tools of your choice.
 
-### Tools
+Tools
+-----
 
-Some service specifications also come with a way to run related tools. For
-example, the `postgres` specification can run the `psql` command line client
-(using the version in the container, to be sure of server compatibility),
-injecting the correct credentials. Thus:
+Some service specifications also come with a way to run related tools. For example, the `postgres` specification can run the `psql` command line client (using the version in the container, to be sure of server compatibility), injecting the correct credentials. Thus:
 
-```
-./devenv.raku tool postgres client
-```
+    $ ./devenv.raku tool postgres client
 
-Is sufficient to launch the client to look at the database. Note that this
-only works when the service is running (so one would run it in one terminal
-window, and then use the tool subcommand in another).
+Is sufficient to launch the client to look at the database. Note that this only works when the service is running (so one would run it in one terminal window, and then use the tool subcommand in another).
 
-### Multiple stores
+Multiple stores
+---------------
 
 Calling:
 
@@ -145,43 +129,30 @@ Is equivalent to calling:
 store 'default';
 ```
 
-That is, it specifies the name of a default store. It is possible to have multiple
-independent stores, which are crated using the `--store` argument before the `run`
-subcommand:
+That is, it specifies the name of a default store. It is possible to have multiple independent stores, which are crated using the `--store` argument before the `run` subcommand:
 
-```
-./devenv.raku --store=bug42 run cro run
-```
+    $ ./devenv.raku --store=bug42 run cro run
 
 To see the created stores, use:
 
-```
-./devenv.raku stores
-```
+    $ ./devenv.raku stores
 
 To show the produced service configuration for a particular store, use:
 
-```
-./devenv.raku --store=bug42 show
-```
+    $ ./devenv.raku --store=bug42 show
 
 To use a tool against a particular store, use:
 
-```
-./devenv.raku --store=bug42 tool postgres client
-```
+    $ ./devenv.raku --store=bug42 tool postgres client
 
 To delete a particular store, rather than the default one, use:
 
-```
-./devenv.raku --store=bug42 delete
-```
+    $ ./devenv.raku --store=bug42 delete
 
-### Multiple instances of a given service
+Multiple instances of a given service
+-------------------------------------
 
-One can have multiple instances of a given service. When doing this, it is wise
-to assign them names (otherwise names like `postgres-2` will be generated, and
-this will not be too informative in `show` output):
+One can have multiple instances of a given service. When doing this, it is wise to assign them names (otherwise names like `postgres-2` will be generated, and this will not be too informative in `show` output):
 
 ```raku
 service 'postgres', :tag<13.0>, :name<pg-products> -> (:$conninfo, *%) {
@@ -195,18 +166,18 @@ service 'postgres', :tag<13.0>, :name<pg-billing> -> (:$conninfo, *%) {
 
 These names are used in the `tool` subcommand:
 
-```
-./devenv.raku -tool pg-billing client
-```
+    $ ./devenv.raku -tool pg-billing client
 
-### Is this magic?
+Is this magic?
+--------------
 
-Not really; the `Dev::ContainerizedService` module exports a `MAIN` sub, which is
-how it gets to provide the program entrypoint.
+Not really; the `Dev::ContainerizedService` module exports a `MAIN` sub, which is how it gets to provide the program entrypoint.
 
-## Available Services
+Available Services
+==================
 
-### Postgres
+Postgres
+--------
 
 Either obtain a connection string:
 
@@ -232,11 +203,10 @@ Postgres supports storage of the database between runs when `store` is used.
 
 The `client` tool is available, and runs the `psql` client:
 
-```
-./devenv.raku tool postgres client
-```
+    $ ./devenv.raku tool postgres client
 
-### Redis
+Redis
+-----
 
 Obtain the host and port of the started instance:
 
@@ -249,13 +219,173 @@ service 'redis', :tag<7.0>, -> (:$host, :$port) {
 
 Redis is currently always in-memory and will never be stored.
 
-## The service I want isn't here!
+The service I want isn't here!
+==============================
 
-1. Fork this repository.
-2. Add a module `Dev::ContainerizedService::Spec::Foo`, and in it write a
-   class of the same name that does `Dev::ContainerizedService::Spec`. See
-   the role's documentation as well as other specs as an example.
-3. Add a mapping to the `constant %specs` in `Dev::ContainerizedService`.
-4. Write a test to make sure it works.
-5. Add an example to the `README.md`.
-6. Submit a pull request.
+  * 1. Fork this repository.
+
+  * 2. Add a module `Dev::ContainerizedService::Spec::Foo`, and in it write a class of the same name that does `Dev::ContainerizedService::Spec`. See the role's documentation as well as other specs as an example
+
+  * 3. Add a mapping to the `constant %specs` in `Dev::ContainerizedService`
+
+  * 4. Write a test to make sure it works
+
+  * 5. Add an example to the documentation 
+
+  * 6. Submit a pull request
+
+Class / Methods reference
+=========================
+
+class Service
+-------------
+
+Details of a specified service.
+
+### sub project
+
+```raku
+sub project(
+    Str $name
+) returns Nil
+```
+
+Declare a project name for the development configuration. This is required if wanting to have persistent storage of the created services between runs.
+
+### sub store
+
+```raku
+sub store(
+    Str $name = "default"
+) returns Nil
+```
+
+Declare that we should store the service state that is produced (for example, by having the data be on a persistent docker). Optionally provide a name for the default store.
+
+### sub service
+
+```raku
+sub service(
+    Str $service-id,
+    &setup,
+    Str :$tag,
+    Str :$name,
+    *%options
+) returns Mu
+```
+
+Declare that a given development service is needed. The body block is run once the service has been started, and can do any desired setup work or specify environment variables to pass to the process that is run. A tag (for the container of the service) can be specified, and the service can be given an explicit name (only really important if one wishes to bring up, for example, two different Postgres instances and have a clear way to refer to each one).
+
+### sub env
+
+```raku
+sub env(
+    Str $name,
+    Str(Any) $value
+) returns Nil
+```
+
+Declare an environment variable be supplied to the process that is started.
+
+### multi sub MAIN
+
+```raku
+multi sub MAIN(
+    "run",
+    Str :$store = Code.new,
+    *@command
+) returns Mu
+```
+
+Run a command in the containerized development environment.
+
+### multi sub MAIN
+
+```raku
+multi sub MAIN(
+    "stores"
+) returns Mu
+```
+
+List stores for the project specified by this development environment script.
+
+### multi sub MAIN
+
+```raku
+multi sub MAIN(
+    "show",
+    Str :$store = Code.new
+) returns Mu
+```
+
+Display the service data of the currently running or most recently run services, optionally specifying the store name.
+
+### multi sub MAIN
+
+```raku
+multi sub MAIN(
+    "tool",
+    Str $service-name,
+    Str $tool-name,
+    *@extra-args,
+    Str :$store = Code.new
+) returns Mu
+```
+
+Run a tool for a service.
+
+### multi sub MAIN
+
+```raku
+multi sub MAIN(
+    "delete",
+    Str :$store = Code.new
+) returns Mu
+```
+
+Delete a store for this development environment script.
+
+### sub get-spec
+
+```raku
+sub get-spec(
+    Str $service-id
+) returns Dev::ContainerizedService::Spec
+```
+
+Look up the specification for a service of the given ID. Dies if it cannot be found. Exported for modules building upon this one.
+
+### sub docker-pull-image
+
+```raku
+sub docker-pull-image(
+    Str $image
+) returns Mu
+```
+
+Tries to pull a docker image. Fails if it cannot. Exported for modules building upon this one.
+
+### sub docker-stop
+
+```raku
+sub docker-stop(
+    Str $name
+) returns Nil
+```
+
+Sends the stop command to a docker container. Exported for modules building upon this one.
+
+AUTHOR
+======
+
+Jonathan Worthington
+
+COPYRIGHT AND LICENSE
+=====================
+
+Copyright 2022 - 2024 Jonathan Worthington
+
+Copyright 2024 Raku Community
+
+This library is free software; you can redistribute it and/or modify it under the Artistic License 2.0.
+

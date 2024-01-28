@@ -1,17 +1,17 @@
 {
-  "name": "Dev::ContainerizedService",
-  "description": "Uses containers to provide services (such as databases) to ease getting a local development environment set up.",
-  "version": "0.1",
-  "perl": "6.*",
+  "auth": "zef:raku-community-modules",
   "authors": [
     "Jonathan Worthington <jnthn@jnthn.net>"
   ],
-  "auth": "zef:jnthn",
+  "build-depends": [
+  ],
   "depends": [
     "JSON::Fast"
   ],
-  "build-depends": [],
-  "test-depends": [],
+  "description": "Uses containers to provide services (such as databases) to ease getting a local development environment set up",
+  "license": "Artistic-2.0",
+  "name": "Dev::ContainerizedService",
+  "perl": "6.*",
   "provides": {
     "Dev::ContainerizedService": "lib/Dev/ContainerizedService.rakumod",
     "Dev::ContainerizedService::Spec": "lib/Dev/ContainerizedService/Spec.rakumod",
@@ -19,7 +19,12 @@
     "Dev::ContainerizedService::Spec::Redis": "lib/Dev/ContainerizedService/Spec/Redis.rakumod",
     "Dev::ContainerizedService::Tool": "lib/Dev/ContainerizedService/Tool.rakumod"
   },
-  "resources": [],
-  "license": "Artistic-2.0",
-  "source-url": "https://github.com/jnthn/raku-dev-containerized-service.git"
+  "resources": [
+  ],
+  "source-url": "https://github.com/raku-community-modules/raku-dev-containerized-service.git",
+  "tags": [
+  ],
+  "test-depends": [
+  ],
+  "version": "0.1"
 }

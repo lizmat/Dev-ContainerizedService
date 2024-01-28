@@ -1,4 +1,2 @@
-lib/.precomp
 .precomp/
-.idea/
-*.iml
+/Dev-ContainerizedService-*
